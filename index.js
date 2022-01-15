@@ -15,7 +15,7 @@ class App extends EventEmitter {
             //if we use password field:
             //generate seed by password + use this password in db secret.
             let seed = require('./crypto/seed');
-            options.seed = seed().createMnemonicPair('english', key);
+            options.seed = seed().createMnemonicPair('english', key).mnemonic;
 
             if (!options.db)
                 options.db = {};

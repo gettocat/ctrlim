@@ -5,7 +5,6 @@ function initdb(app) { //'your-encryption-key'
     //TODO: autoremove old keys on removeDialog and unfollow.
 
     let path = app.getLocalHomePath(app.config.appname || 'ctrlim');
-
     const sequelize = new Sequelize('control', '', app.config.db.secret, {
         dialect: 'sqlite',
         dialectModulePath: '@journeyapps/sqlcipher',
