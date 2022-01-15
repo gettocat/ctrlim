@@ -69,7 +69,7 @@ class App extends EventEmitter {
             homepath = process.env.HOME;
 
         let dir = homepath + "/" + (process.platform == 'linux' ? "." : "") + appname;
-        initDir(dir);
+        this.initDir(dir);
         return dir;
     }
     initDir(path) {
