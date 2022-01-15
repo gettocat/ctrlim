@@ -7,17 +7,21 @@ class App extends EventEmitter {
     constructor(options, password) {
         super();
 
+        if (!options)
+            options = {};
+
         if (password) {
             let key = cr.createHash('sha256').update(cr.createHash('sha256').update(password).digest()).digest('hex');
             //if we use password field:
             //generate seed by password + use this password in db secret.
             let seed = require('./crypto/seed');
             options.seed = seed().createMnemonicPair('english', key);
+
+            if (!options.db)
+                options.db = {};
+
             options.db.secret = password;
         }
-
-        if (!options)
-            options = {};
 
         this.config = this.initConfig(options);
 
