@@ -1,5 +1,3 @@
-const bitPony = require('bitpony');
-const EC = require('elliptic').ec;
 const cr = require('crypto');
 const filtercryptography = require('filtergraphy');
 const { Op } = require('sequelize')

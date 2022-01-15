@@ -1,5 +1,4 @@
 const HDKey = require('hdkey');
-const cr = require('crypto');
 const bip39 = require('bip39');
 
 module.exports = (crypto) => {
