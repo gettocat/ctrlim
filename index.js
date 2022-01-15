@@ -1,16 +1,18 @@
 const EventEmitter = require('events');
 const mixin = require('mixin-deep');
 const fs = require('fs');
+const cr = require('crypto');
 
 class App extends EventEmitter {
     constructor(options, password) {
         super();
 
         if (password) {
-            let key = this.crypto.sha256d(password);
+            let key = cr.createHash('sha256').update(cr.createHash('sha256').update(password).digest()).digest('hex');
             //if we use password field:
             //generate seed by password + use this password in db secret.
-            options.seed = seed.createMnemonicPair('english', this.crypto.seed.createMnemonicPair('english', key));
+            let seed = require('./crypto/seed');
+            options.seed = seed().createMnemonicPair('english', key);
             options.db.secret = password;
         }
 
