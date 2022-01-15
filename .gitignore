@@ -79,3 +79,4 @@ control.db
 control.tests.db
 .vscode/
 t.js
+.DS_Store
