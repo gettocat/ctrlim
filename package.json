@@ -1,0 +1,43 @@
+{
+    "name": "control-js",
+    "version": "0.0.1",
+    "description": "Control framework",
+    "main": "index.js",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/gettocat/friday-serialized.git"
+    },
+    "homepage": "https://github.com/gettocat/friday-serialized",
+    "keywords": [],
+    "dependencies": {
+        "filtergraphy": "^0.0.1",
+        "@journeyapps/sqlcipher": "^5.1.0",
+        "bip39": "^3.0.3",
+        "bitowl": "^0.0.2",
+        "bitpony": "^0.0.2",
+        "bloom-filter": "^0.2.0",
+        "elliptic": "^6.5.3",
+        "expiry-model": "^1.0.2",
+        "hash.js": "^1.1.7",
+        "hdkey": "^2.0.1",
+        "hyperswarm": "^2.15.3",
+        "k-bucket": "^5.0.0",
+        "recursive-diff": "^1.0.8",
+        "scuttleboat": "^0.0.1",
+        "scuttlebutt": "^5.6.15",
+        "sequelize": "6.4.0",
+        "sqlite3": "^5.0.2",
+        "mixin-deep": "^2.0.1"
+    },
+    "author": "Nanocat <gettocat@github.com>",
+    "license": "MIT",
+    "devDependencies": {
+        "mocha": "^9.0.2"
+    },
+    "bugs": {
+        "url": "https://github.com/gettocat/friday-serialized/issues"
+    },
+    "scripts": {
+        "test": "./node_modules/.bin/mocha test/index.test.js"
+    }
+}

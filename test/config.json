@@ -1,0 +1,23 @@
+{
+    "seed": "skull fan flight acid grunt adjust steak process flight drastic hope silly",
+    "db": {
+        "secret": "your-encryption-key"
+    },
+    "testmod": true,
+    "nopersist": true,
+    "testnetenabled": true,
+    "//confidentiality_comment": "receive message only from following media",
+    "confidentiality": "high",
+    "network": {
+        "version": 1,
+        "nodiscovery": true
+    },
+    "proof": {
+        "//target_comment": "minimum diff value",
+        "target": 10,
+        "//period_comment": "period of proof calculations in seconds",
+        "period": 3600,
+        "//capacity_comment": "messages per second",
+        "capacity": 100
+    }
+}
