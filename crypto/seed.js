@@ -1,7 +1,7 @@
 const HDKey = require('hdkey');
 const bip39 = require('bip39');
 
-module.exports = (crypto) => {
+module.exports = () => {
     class seed {
 
         constructor(mnemonic) {
