@@ -13,135 +13,147 @@ function initdb(app) { //'your-encryption-key'
     });
 
     // SQLCipher config
-    sequelize.query('PRAGMA cipher_page_size = 4096');
-    sequelize.query('PRAGMA kdf_iter = 256000');
-    sequelize.query('PRAGMA cipher_hmac_algorithm = HMAC_SHA512');
-    sequelize.query('PRAGMA cipher_kdf_algorithm = PBKDF2_HMAC_SHA512');
-    sequelize.query('PRAGMA cipher_page_size = 4096');
-    sequelize.query('PRAGMA cipher_compatibility = 3');
-    sequelize.query("PRAGMA key = '" + app.config.db.secret + "'");
+    return Promise.all([
+        sequelize.query('PRAGMA cipher_page_size = 4096'),
+        sequelize.query('PRAGMA kdf_iter = 256000'),
+        sequelize.query('PRAGMA cipher_hmac_algorithm = HMAC_SHA512'),
+        sequelize.query('PRAGMA cipher_kdf_algorithm = PBKDF2_HMAC_SHA512'),
+        sequelize.query('PRAGMA cipher_page_size = 4096'),
+        sequelize.query('PRAGMA cipher_compatibility = 3'),
+        sequelize.query("PRAGMA key = '" + app.config.db.secret + "'")
+    ])
+        .then(() => {
+            class Account extends Model { }
+            class KeyPair extends Model { }
+            class Dialog extends Model { }
+            class Media extends Model { }
+            class Follower extends Model { }
 
-    class Account extends Model { }
-    class KeyPair extends Model { }
-    class Dialog extends Model { }
-    class Media extends Model { }
-    class Follower extends Model { }
+            class Message extends Model {
+                /*render(cutted) {
+                    if (cutted) {
+                        return ejs.render(fs.readFileSync(path.join(__dirname, "../../../../", "templates/parts", 'cutted_chat_message.ejs'), 'utf8'), { msg: this })
+                    } else
+                        return ejs.render(fs.readFileSync(path.join(__dirname, "../../../../", "templates/parts", 'chat_message.ejs'), 'utf8'), { msg: this })
+                }
+                renderDate() {
+                    let date = this.createdAt; //new Date(timestamp * 1000);
+                    return ('0' + date.getDate()).slice(-2) + '-' + ('0' + (date.getMonth() + 1)).slice(-2) + '-' + date.getFullYear() + ' ' + ('0' + date.getHours()).slice(-2) + ':' + ('0' + date.getMinutes()).slice(-2);
+                }*/
+            }
 
-    class Message extends Model {
-        /*render(cutted) {
-            if (cutted) {
-                return ejs.render(fs.readFileSync(path.join(__dirname, "../../../../", "templates/parts", 'cutted_chat_message.ejs'), 'utf8'), { msg: this })
-            } else
-                return ejs.render(fs.readFileSync(path.join(__dirname, "../../../../", "templates/parts", 'chat_message.ejs'), 'utf8'), { msg: this })
-        }
-        renderDate() {
-            let date = this.createdAt; //new Date(timestamp * 1000);
-            return ('0' + date.getDate()).slice(-2) + '-' + ('0' + (date.getMonth() + 1)).slice(-2) + '-' + date.getFullYear() + ' ' + ('0' + date.getHours()).slice(-2) + ':' + ('0' + date.getMinutes()).slice(-2);
-        }*/
-    }
+            Account.init({
+                id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+                mnemonic: DataTypes.STRING,
+                seed: DataTypes.STRING,
+                name: DataTypes.STRING,
+                privateKey: DataTypes.STRING,
+                publicKey: DataTypes.STRING,
+            }, { sequelize, modelName: 'account' });
 
-    Account.init({
-        id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-        mnemonic: DataTypes.STRING,
-        seed: DataTypes.STRING,
-        name: DataTypes.STRING,
-        privateKey: DataTypes.STRING,
-        publicKey: DataTypes.STRING,
-    }, { sequelize, modelName: 'account' });
+            KeyPair.init({
+                id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+                publicKey: DataTypes.STRING,
+                privateKey: DataTypes.STRING,
+                path: DataTypes.STRING,
+                index: DataTypes.INTEGER,
+                keyType: DataTypes.STRING,
+                xpub: DataTypes.STRING,
+            }, { sequelize, modelName: 'keypair' });
 
-    KeyPair.init({
-        id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-        publicKey: DataTypes.STRING,
-        privateKey: DataTypes.STRING,
-        path: DataTypes.STRING,
-        index: DataTypes.INTEGER,
-        keyType: DataTypes.STRING,
-        xpub: DataTypes.STRING,
-    }, { sequelize, modelName: 'keypair' });
+            Dialog.init({
+                id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+                localkey: DataTypes.STRING,
+                externalkey: DataTypes.STRING,
+                name: DataTypes.STRING,
+                isMedia: DataTypes.INTEGER
+                //receiver data from handshake
+            }, { sequelize, modelName: 'dialog' });
 
-    Dialog.init({
-        id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-        localkey: DataTypes.STRING,
-        externalkey: DataTypes.STRING,
-        name: DataTypes.STRING,
-        isMedia: DataTypes.INTEGER
-        //receiver data from handshake
-    }, { sequelize, modelName: 'dialog' });
+            Message.init({
+                id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+                dialog_id: DataTypes.INTEGER,
+                type: DataTypes.STRING,
+                content: DataTypes.STRING,
+                hash: DataTypes.STRING,
+                self: DataTypes.INTEGER,
+                json: DataTypes.STRING,
+                nonce: DataTypes.INTEGER,
+                time: DataTypes.INTEGER,
+                network_hash: DataTypes.STRING,
+            }, { sequelize, modelName: 'message' })
 
-    Message.init({
-        id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-        dialog_id: DataTypes.INTEGER,
-        type: DataTypes.STRING,
-        content: DataTypes.STRING,
-        hash: DataTypes.STRING,
-        self: DataTypes.INTEGER,
-        json: DataTypes.STRING,
-        nonce: DataTypes.INTEGER,
-        time: DataTypes.INTEGER,
-        network_hash: DataTypes.STRING,
-    }, { sequelize, modelName: 'message' })
+            Media.init({
+                id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+                xpub: DataTypes.STRING,
+                publicKey: DataTypes.STRING,
+                name: DataTypes.STRING,
+                type: DataTypes.STRING,
+            }, { sequelize, modelName: 'media' });
 
-    Media.init({
-        id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-        xpub: DataTypes.STRING,
-        publicKey: DataTypes.STRING,
-        name: DataTypes.STRING,
-        type: DataTypes.STRING,
-    }, { sequelize, modelName: 'media' });
+            Follower.init({
+                id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+                localkey: DataTypes.STRING,
+                followerkey: DataTypes.STRING,
+            }, { sequelize, modelName: 'follower' });
 
-    Follower.init({
-        id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-        localkey: DataTypes.STRING,
-        followerkey: DataTypes.STRING,
-    }, { sequelize, modelName: 'follower' });
 
-    return {
-        sequelize,
-        Account,
-        KeyPair,
-        Dialog,
-        Message,
-        Media,
-        Follower
-    };
+            return Promise.resolve({
+                sequelize,
+                Account,
+                KeyPair,
+                Dialog,
+                Message,
+                Media,
+                Follower
+            })
+        })
+
+
 }
 
 
 class db {
     constructor(app) {
         this.app = app;
-        let d = initdb(app);
-        this.instance = d.sequelize;
-        this.models = {
-            Account: d.Account,
-            KeyPair: d.KeyPair,
-            Dialog: d.Dialog,
-            Message: d.Message,
-            Media: d.Media,
-            Follower: d.Follower,
-        }
     }
     init(existSeed) {
-        return new Promise((resolve) => {
-            this.instance.sync({ alter: true }) //alter true is only for production
-                .then(() => {
-                    this.accounts = new accountsManager(this.instance, this);
-                    this.keys = new keysManager(this.instance, this);
-                    this.dialogs = new dialogManager(this.instance, this);
-                    this.messages = new messageManager(this.instance, this);
-                    this.medias = new mediaManager(this.instance, this);
-                    this.followers = new followersManager(this.instance, this);
-                    this.accounts.load('default', existSeed)
-                        .then(() => {
-                            resolve();
-                        });
 
-                    this.app.on('beforeDestroy', () => {
-                        this.app.emit("module.destroy", { name: 'storage', promise: this.instance.close() });
-                    })
+        return initdb(this.app)
+            .then(d => {
+                this.instance = d.sequelize;
+                this.models = {
+                    Account: d.Account,
+                    KeyPair: d.KeyPair,
+                    Dialog: d.Dialog,
+                    Message: d.Message,
+                    Media: d.Media,
+                    Follower: d.Follower,
+                }
 
+                return this.instance.sync({ alter: true })
+            })
+            .catch(e => {
+                if (e.message == 'SQLITE_NOTADB: file is not a database') {
+                    //wrong password catched
+                    this.app.emit('wrongpassword');
+                    return Promise.reject('wrong password');
+                }
+            })
+            .then(() => {
+                this.accounts = new accountsManager(this.instance, this);
+                this.keys = new keysManager(this.instance, this);
+                this.dialogs = new dialogManager(this.instance, this);
+                this.messages = new messageManager(this.instance, this);
+                this.medias = new mediaManager(this.instance, this);
+                this.followers = new followersManager(this.instance, this);
+
+                this.app.on('beforeDestroy', () => {
+                    this.app.emit("module.destroy", { name: 'storage', promise: this.instance.close() });
                 })
-        })
+
+                return this.accounts.load('default', existSeed);
+            })
     }
     rollback() {
         if (this.app.testmod) {

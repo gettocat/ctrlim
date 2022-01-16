@@ -10,6 +10,10 @@ class App extends EventEmitter {
         if (!options)
             options = {};
 
+        //this.on('wrongpassword', () => {
+        //    do something if password is wrong
+        //})
+
         if (password) {
             let key = cr.createHash('sha256').update(cr.createHash('sha256').update(password).digest()).digest('hex');
             //if we use password field:
@@ -45,6 +49,9 @@ class App extends EventEmitter {
             .then(() => {
 
                 this.emit("init");
+            })
+            .catch(e => {
+                this.debug('common', 'error', 'main catch', e);
             })
     }
     getDefaultConfig() {
@@ -264,9 +271,9 @@ class App extends EventEmitter {
             }
 
         }
-        if (exitCode || exitCode === 0) console.log(exitCode);
+        if (exitCode || exitCode === 0) this.debug('common', 'error', 'exit code', exitCode);
         if (options.exception) {
-            console.log(options);
+            this.debug('common', 'error', 'uncatch error', options);
         }
         if (options.exit) process.exit();
     }
