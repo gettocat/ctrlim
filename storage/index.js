@@ -719,6 +719,19 @@ class dialogManager {
                 return Promise.resolve(dialog);
             })
     }
+    removeByIdent(ident) {
+        return this.db.models.Dialog.findOne({
+            where: {
+                [Op.or]: [{ id: ident }, { externalkey: ident }, { name: ident }]
+            }
+        })
+            .then(dialog => {
+                if (!dialog)
+                    return Promise.resolve(false);
+
+                return dialog.remove();
+            })
+    }
     remove(localkey, externalkey) {
 
         if (localkey instanceof Buffer)

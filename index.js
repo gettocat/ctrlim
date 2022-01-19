@@ -159,6 +159,9 @@ class App extends EventEmitter {
     addContact(localkey, externalkey, dialog_title) {
         return this.crypto.addDialog(localkey, externalkey, dialog_title);
     }
+    removeContact(idOrExternalKeyOrName) {
+        return this.storage.dialogs.removeByIdent(idOrExternalKeyOrName);
+    }
     //its used for filterfrom,filterto, filterfrom-filterto messages
     sendById(dialog_id, buffer) {
         //find dialog by id, encrypt, send
