@@ -198,6 +198,9 @@ class App extends EventEmitter {
     getAllKeys() {
         return this.storage.keys.usages();
     }
+    getAllDialogs(limit, offset) {
+        return this.storage.dialogs.list(limit, offset)
+    }
     //media
     createMedia(name, type) {
         //type can be:

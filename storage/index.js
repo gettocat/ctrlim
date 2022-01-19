@@ -759,6 +759,33 @@ class dialogManager {
             }
         })
     }
+    list(limit, offset) {
+        let w = { order: [['createdAt', 'DESC']] };
+
+        if (limit) {
+
+            w.limit = limit;
+            w.offset = offset;
+
+            if (!offset)
+                w.offset = 0;
+        }
+
+        return this.db.models.Dialog.findAll(w)
+            .then(list => {
+                let arr = [];
+                for (let d of list) {
+                    arr.push({
+                        localkey: d.localkey,
+                        externalkey: d.externalkey,
+                        id: d.id,
+                        name: d.name,
+                    });
+                }
+
+                return Promise.resolve(arr);
+            })
+    }
     map(fn) {
         return this.db.models.Dialog.findAll({})
             .then(list => {
