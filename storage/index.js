@@ -403,7 +403,17 @@ class keysManager {
                     keyType: type,
                 };
 
-                return this.db.models.KeyPair.create(d);
+                return this.db.models.KeyPair.findOne({
+                    where: {
+                        publicKey: key.publicKey.toString('hex')
+                    }
+                })
+                    .then((k) => {
+                        if (!k)
+                            return this.db.models.KeyPair.create(d);
+
+                        return Promise.resolve(k);
+                    })
             })
             .then((key) => {
                 if (this.db.app.testmod)
@@ -456,7 +466,17 @@ class keysManager {
                     xpub: key.publicExtendedKey
                 };
 
-                return this.db.models.KeyPair.create(d);
+                return this.db.models.KeyPair.findOne({
+                    where: {
+                        publicKey: key.publicKey.toString('hex')
+                    }
+                })
+                    .then((k) => {
+                        if (!k)
+                            return this.db.models.KeyPair.create(d);
+
+                        return Promise.resolve(k);
+                    })
             })
             .then((key) => {
                 if (this.db.app.testmod)
