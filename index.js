@@ -195,6 +195,9 @@ class App extends EventEmitter {
     createEmptyMediaKey() {
         return this.storage.keys.createPublicEmpty();
     }
+    getAllKeys() {
+        return this.storage.keys.usages();
+    }
     //media
     createMedia(name, type) {
         //type can be:

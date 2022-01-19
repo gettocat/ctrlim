@@ -613,6 +613,30 @@ class keysManager {
 
             })
     }
+    usages() {
+        let promise = Promise.resolve();
+        let keys = [];
+        return this.db.models.KeyPair.findAll({})
+            .then(list => {
+                for (let key of list) {
+                    if (!key)
+                        continue;
+
+                    promise = promise.then(() => {
+                        return this.db.models.Dialog.count({ where: { localkey: key.publicKey } })
+                            .then((cnt) => {
+                                keys.push({ publicKey: key.publicKey, count: cnt });
+                                return Promise.resolve();
+                            })
+                    });
+                }
+
+                return promise;
+            })
+            .then(() => {
+                return Promise.resolve(keys);
+            })
+    }
     map(fn) {
         return this.db.models.KeyPair.findAll({})
             .then(list => {
