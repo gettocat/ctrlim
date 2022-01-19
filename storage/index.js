@@ -729,7 +729,7 @@ class dialogManager {
                 if (!dialog)
                     return Promise.resolve(false);
 
-                return dialog.remove();
+                return dialog.destroy();
             })
     }
     remove(localkey, externalkey) {
