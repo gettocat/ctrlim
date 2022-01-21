@@ -192,6 +192,9 @@ class App extends EventEmitter {
 
         return this.storage.messages.add(dialog_id, options.message_id, data, options.self, type, JSON.stringify(cnt), options.nonce, options.time, options.hash)
     }
+    getDialogById(id) {
+        return this.storage.dialog.getById(id);
+    }
     getDialogMessageHistory(id, offset, limit) {
         return this.storage.messages.getAllByDialogId(id, offset, limit);
     }
