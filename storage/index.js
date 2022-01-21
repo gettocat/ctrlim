@@ -868,7 +868,20 @@ class messageManager {
         this.db = db;
         this.history = [];
     }
+    getAllByDialogId(id, offset, limit) {
+        let q = {
+            where: { dialog_id: id },
+            order: [
+                ['time', 'ASC']
+            ],
+            offset: offset
+        };
 
+        if (limit)
+            q.limit = limit;
+
+        return this.db.models.Message.findAll(q);
+    }
     getList(where, order, offset, limit) {
         if (!limit)
             limit = 100;
