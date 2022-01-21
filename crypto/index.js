@@ -361,6 +361,10 @@ class Crypto {
             .then(dialog => {
                 return this.encrypt(dialog, buffer, Crypto.FILTERFROMFILTERTO);
             })
+            .then(payload => {
+                return this.payloadBroadcast(payload);
+            })
+
     }
     addDialog(localkey, externalkey, title) {
         return this.app.storage.dialogs.add(localkey, externalkey, title);
