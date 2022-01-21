@@ -9,6 +9,9 @@ class Crypto {
         this.app = app;
 
         this.cr = new filtercryptography();
+        if (!this.cr.sha256d)
+            this.cr.sha256d = this.sha256d;//bug fix
+
         this.seed = this.cr.seed;
         this.messageSchema = this.cr.messageSchema;
         this.initMessageSchemas();
