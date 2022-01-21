@@ -258,6 +258,9 @@ class App extends EventEmitter {
             this.exitHandler.bind(this, { exit: false, exception: true, e })
         });
     }
+    sha256d(message, output) {
+        return this.crypto.sha256d(message, output)
+    }
     //services
     exitHandler(options, exitCode) {
         if (options.cleanup) {
