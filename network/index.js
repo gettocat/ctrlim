@@ -137,6 +137,8 @@ module.exports = function (app) {
             const hash = update[0][0];
             const msg = update[0][1];
 
+            msg.message = Buffer.from(msg.message);//fix for internetwork connections (convert buffer to json.)
+
             if (this.get(hash))
                 return false;
 
@@ -169,6 +171,7 @@ module.exports = function (app) {
 
         constructor() {
             this.app = app;
+            this.swarm = null;
         }
         createNode() {
             if (this.app.testmod && !this.app.testnetenabled)
@@ -220,6 +223,8 @@ module.exports = function (app) {
                     //add this message to local cache and do not read again
                 };
 
+                message.message = Buffer.from(message.message);//fix for internetwork connections (convert buffer to json.)
+
                 //now we must check - this message is for us or not.
                 app.emit('network.message', { hash, message, callback })
             });
@@ -252,15 +257,15 @@ module.exports = function (app) {
                 return;
             if (this.app.testmod && !this.app.testnetenabled)
                 return;
-            const swarm = hyperswarm()
+            this.swarm = hyperswarm()
             // look for peers listed under this topic
-            swarm.join(this.app.crypto.sha256('ctrlim'), {
+            this.swarm.join(this.app.crypto.sha256('ctrlim'), {
                 bootstrap: this.app.config.network.bootstrapnodes,
                 lookup: this.app.config.network.lookup, // find & connect to peers if it is not server
                 announce: this.app.config.network.announce // optional- announce self as a connection target
             })
 
-            swarm.on('connection', (socket, info) => {
+            this.swarm.on('connection', (socket, info) => {
                 console.log('new connection!');
                 socket.on("error", this.error);
                 socket.pipe(this.document.createStream()).pipe(socket);
@@ -270,7 +275,7 @@ module.exports = function (app) {
 
             app.on('beforeDestroy', () => {
                 let promise = new Promise(resolve => {
-                    swarm.destroy(() => {
+                    this.swarm.destroy(() => {
                         resolve();
                     });
                 });
