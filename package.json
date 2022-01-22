@@ -1,6 +1,6 @@
 {
   "name": "@nanocat/ctrlim",
-  "version": "0.0.22",
+  "version": "0.0.23",
   "description": "Decentralized exchange of encrypted messages with the possibility of decentralized control (DAO)",
   "main": "index.js",
   "repository": {
