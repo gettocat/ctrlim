@@ -172,6 +172,7 @@ module.exports = function (app) {
         constructor() {
             this.app = app;
             this.swarm = null;
+            this.peers = {};
         }
         createNode() {
             if (this.app.testmod && !this.app.testnetenabled)
@@ -257,9 +258,14 @@ module.exports = function (app) {
                 return;
             if (this.app.testmod && !this.app.testnetenabled)
                 return;
-            this.swarm = hyperswarm()
+
+            let opts = {};
+            if (this.app.config.network.port)
+                opts.port = this.app.config.network.port;
+
+            this.swarm = hyperswarm(opts)
             // look for peers listed under this topic
-            this.swarm.join(this.app.crypto.sha256('ctrlim'), {
+            this.swarm.join(this.app.crypto.sha256(this.app.config.network.key || 'ctrlim'), {
                 bootstrap: this.app.config.network.bootstrapnodes,
                 lookup: this.app.config.network.lookup, // find & connect to peers if it is not server
                 announce: this.app.config.network.announce // optional- announce self as a connection target
@@ -267,11 +273,17 @@ module.exports = function (app) {
 
             this.swarm.on('connection', (socket, info) => {
                 console.log('new connection!');
+                this.peers[info.peer.host + ":" + info.peer.port] = 1;
                 socket.on("error", this.error);
                 socket.pipe(this.document.createStream()).pipe(socket);
                 // you can now use the socket as a stream, eg:
                 // process.stdin.pipe(socket).pipe(process.stdout)
             });
+
+            this.swarm.on('disconnection', (socket, info) => {
+                if (this.peers[info.peer.host + ":" + info.peer.port])
+                    delete this.peers[info.peer.host + ":" + info.peer.port]
+            })
 
             app.on('beforeDestroy', () => {
                 let promise = new Promise(resolve => {
@@ -284,6 +296,17 @@ module.exports = function (app) {
             })
 
             return Promise.resolve();
+        }
+        getMempool() {
+            let pool = [];
+            const h = this.document.get('mempool').history();
+            for (let i = h.length - 1; i >= 0; i--) {
+                let x = h[i][0][1];
+                x.hash = h[i][0][0];
+                pool.push(x);
+            }
+
+            return pool
         }
         error(e) {
             console.log('client error', e.code);

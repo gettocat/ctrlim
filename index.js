@@ -63,6 +63,8 @@ class App extends EventEmitter {
             "seed": "",
             "nopersist": false,
             "network": {
+                "port": null,
+                "key": "ctrlim",
                 "version": 1,
                 "nodiscovery": false,
                 "bootstrapnodes": [],//bootstrap nodes.
