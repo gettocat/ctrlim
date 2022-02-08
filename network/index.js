@@ -1,30 +1,11 @@
 const hyperswarm = require('hyperswarm')
-const ScuttleBoat = require('scuttleboat');
+const Scuttlebucket = require('scuttlebucket');
 const Model = require('scuttlebutt/model');
-//const ExpiryModel = require('expiry-model');
 const net = require('net');
 const HDKey = require('hdkey');
 const diff = require('recursive-diff');
 
 module.exports = function (app) {
-
-    MempoolFnc.prototype.constructor = MempoolFnc;
-
-    function NetworkModelFnc(opts) {
-        return new NetworkModel(opts);
-    }
-
-    NetworkModelFnc.prototype.constructor = NetworkModelFnc;
-
-    function MempoolFnc(opts) {
-        return new Mempool(opts);
-    }
-
-    function FollowersModelFnc(opts) {
-        return new FollowersModel(opts);
-    }
-
-    FollowersModelFnc.prototype.constructor = FollowersModelFnc;
 
     class FollowersModel extends Model {
         constructor(opts) {
@@ -132,7 +113,7 @@ module.exports = function (app) {
         }
     }
 
-    class Mempool extends Model { //can be bug here.
+    class Mempool extends Model {
         applyUpdate(update) {
             const hash = update[0][0];
             const msg = update[0][1];
@@ -171,6 +152,7 @@ module.exports = function (app) {
 
         constructor() {
             this.app = app;
+            this.port = this.app.config.network.port ? this.app.config.network.port : Math.floor(Math.random() * (65000 - 2048) + 2048);
             this.swarm = null;
             this.peers = {};
         }
@@ -180,19 +162,14 @@ module.exports = function (app) {
             if (this.instance)
                 throw new Error('NET Already exist');
 
-            this.document = new ScuttleBoat({
-                constructors: {
-                    State: NetworkModelFnc,
-                    Mempool: MempoolFnc,
-                    Followers: FollowersModelFnc,
-                },
-            });
+            this.document = new Scuttlebucket()
+                .add('state', new NetworkModel())
+                .add('mempool', new Mempool())
+                .add('followers', new FollowersModel())
 
-            this.document.add('state', 'State');
-            this.document.add('mempool', 'Mempool');
-            this.document.add('followers', 'Followers');
-
-
+            /*this.document.on('_update', () => {
+                console.log('update', this.document.toJSON())
+            })*/
             /*this.document.on('create', (param1) => {
     console.log('create doc field', param1)
 });
@@ -239,8 +216,6 @@ module.exports = function (app) {
                 this.app.storage.medias.add(d.type, name, d.xpub);
             });
 
-
-
             //if node is server - need instance, else - it is not important.
             this.instance = net.createServer((stream) => {
                 stream.pipe(this.document.createStream()).pipe(stream);
@@ -259,26 +234,36 @@ module.exports = function (app) {
             if (this.app.testmod && !this.app.testnetenabled)
                 return;
 
-            let opts = {};
-            if (this.app.config.network.port)
-                opts.port = this.app.config.network.port;
-
-            this.swarm = hyperswarm(opts)
+            this.swarm = hyperswarm()
             // look for peers listed under this topic
             this.swarm.join(this.app.crypto.sha256(this.app.config.network.key || 'ctrlim'), {
                 bootstrap: this.app.config.network.bootstrapnodes,
                 lookup: this.app.config.network.lookup, // find & connect to peers if it is not server
                 announce: this.app.config.network.announce // optional- announce self as a connection target
+            }, () => {
+                this.app.debug('network', 'log', 'joined to dicovery channel with address', this.swarm.address())
             })
 
             this.swarm.on('connection', (socket, info) => {
-                console.log('new connection!');
-                this.peers[info.peer.host + ":" + info.peer.port] = 1;
+
+                if (info.peer)
+                    this.app.debug('network', 'log', 'new connection!', info.peer);
+
+                if (info.peer)
+                    this.peers[info.peer.host + ":" + info.peer.port] = 1;
+
                 socket.on("error", this.error);
                 socket.pipe(this.document.createStream()).pipe(socket);
+                this.document.createStream().pipe(socket).pipe(this.document.createStream());
+
                 // you can now use the socket as a stream, eg:
                 // process.stdin.pipe(socket).pipe(process.stdout)
             });
+
+
+            this.swarm.on('peer', (peer) => {
+                //this.app.debug('network', 'log', 'new peer', peer.to)
+            })
 
             this.swarm.on('disconnection', (socket, info) => {
                 if (this.peers[info.peer.host + ":" + info.peer.port])
@@ -313,8 +298,8 @@ module.exports = function (app) {
         }
         init() {
             return Promise.all([
-                this.discoveryPeers(),
                 this.createNode(),
+                this.discoveryPeers(),
             ]);
         }
         broadcast(hash, time, nonce, message, sign) {

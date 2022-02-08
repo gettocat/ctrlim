@@ -18,7 +18,7 @@
     "hdkey": "^2.0.1",
     "hyperswarm": "^2.15.3",
     "recursive-diff": "^1.0.8",
-    "scuttleboat": "^0.0.1",
+    "scuttlebucket": "^0.2.3",
     "scuttlebutt": "^5.6.15",
     "sequelize": "6.4.0",
     "sqlite3": "^5.0.2",
