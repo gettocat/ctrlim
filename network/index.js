@@ -118,6 +118,9 @@ module.exports = function (app) {
             const hash = update[0][0];
             const msg = update[0][1];
 
+            if (!msg || !msg.message)
+                return false;
+
             msg.message = Buffer.from(msg.message);//fix for internetwork connections (convert buffer to json.)
 
             if (this.get(hash))
@@ -126,21 +129,21 @@ module.exports = function (app) {
             //check hash
             const hash2 = app.crypto.cr.pow.getHash(msg.message, msg.time, msg.nonce);
             if (hash != hash2) {
-                console.log('msg hash is not valid');
+                this.app.debug('network', 'log', 'message ' + msg.hash + ' is not added, invalid hash', hash2);
                 return false;
             }
 
             //check proof
             if (!app.crypto.cr.pow.checkProof(msg.message, msg.time, msg.nonce)) {
-                console.log('proof is not valid');
+                this.app.debug('network', 'log', 'message ' + msg.hash + ' is not added, proof out of bounds');
                 return false;
             }
 
             //check time
             let time = Date.now() / 1000;
-            //TODO: need remove old records from local mempool
             if (Math.abs(msg.time - time) > 24 * 60 * 60) {
-                console.log('time is not valid');
+                //console.log('time is not valid');
+                this.app.debug('network', 'log', 'message ' + msg.hash + ' is not added, time expiried');
                 return false;
             }
 
@@ -155,6 +158,23 @@ module.exports = function (app) {
             this.port = this.app.config.network.port ? this.app.config.network.port : Math.floor(Math.random() * (65000 - 2048) + 2048);
             this.swarm = null;
             this.peers = {};
+            this.gc = null;
+        }
+        runGC() {
+            this.gc = setTimeout(() => {
+                let list = getMempool();
+                const range = 24 * 60 * 60;
+                let cnt = 0;
+                for (let tx of list) {
+                    if (Date.now() / 1000 - tx.time > range) {
+                        this.document.get('mempool').set(tx.hash, {});
+                        cnt++;
+                    }
+                }
+
+                this.app.debug('network', 'log', 'GC, removed: ', cnt);
+                this.runGC();
+            }, 60 * 60 * 1000);
         }
         createNode() {
             if (this.app.testmod && !this.app.testnetenabled)
@@ -216,16 +236,18 @@ module.exports = function (app) {
                 this.app.storage.medias.add(d.type, name, d.xpub);
             });
 
-            //if node is server - need instance, else - it is not important.
-            this.instance = net.createServer((stream) => {
-                stream.pipe(this.document.createStream()).pipe(stream);
-            });
-            this.instance.listen(Math.floor(Math.random() * (65000 - 2048) + 2048));
+            this.instance = true;
 
             this.document.on('clientError', this.error);
             this.document.on("error", this.error);
-            this.instance.on('clientError', this.error);
 
+            /*this.instance = net.createServer((stream) => {
+                stream.pipe(this.document.createStream()).pipe(stream);
+            });
+            this.instance.listen(Math.floor(Math.random() * (65000 - 2048) + 2048));
+            this.instance.on('clientError', this.error);*/
+
+            this.runGC();
             return Promise.resolve(this.document);
         }
         discoveryPeers() {
@@ -255,9 +277,6 @@ module.exports = function (app) {
                 socket.on("error", this.error);
                 socket.pipe(this.document.createStream()).pipe(socket);
                 this.document.createStream().pipe(socket).pipe(this.document.createStream());
-
-                // you can now use the socket as a stream, eg:
-                // process.stdin.pipe(socket).pipe(process.stdout)
             });
 
 
@@ -294,7 +313,7 @@ module.exports = function (app) {
             return pool
         }
         error(e) {
-            console.log('client error', e.code);
+            this.app.debug('network', 'error', "error in network module: " + e.message, e);
         }
         init() {
             return Promise.all([

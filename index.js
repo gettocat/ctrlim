@@ -386,10 +386,10 @@ class App extends EventEmitter {
         return this.storage.dialogs.list(limit, offset)
     }
     getMyMedia() {
-        return this.storage.media.findAll({ where: { local: 1, type: ['MEDIA_PUBLIC', 'MEDIA_PRIVATE'] } })
+        return this.storage.models.Media.findAll({ where: { local: 1, type: ['MEDIA_PUBLIC', 'MEDIA_PRIVATE'] } })
     }
     getMyNickname() {
-        return this.storage.media.findAll({ where: { local: 1, type: 'NICKNAME' } })
+        return this.storage.models.Media.findAll({ where: { local: 1, type: 'NICKNAME' } })
     }
     createNickname(name) {
         return this.createMedia(name, 'NICKNAME');
