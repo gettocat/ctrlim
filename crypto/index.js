@@ -120,7 +120,8 @@ class Crypto {
                 where: {
                     index: {
                         [Op.gte]: 0
-                    }
+                    },
+                    keyType: 'private_dialog'
                 },
                 order: [
                     ['index', 'DESC']
@@ -144,8 +145,8 @@ class Crypto {
                 where: {
                     index: {
                         [Op.gte]: 0,
-                        keyType: 'public_dialog'
-                    }
+                    },
+                    keyType: 'public_keypair'
                 },
                 order: [
                     ['index', 'DESC']

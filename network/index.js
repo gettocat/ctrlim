@@ -42,26 +42,26 @@ module.exports = function (app) {
             key.publicKey = Buffer.from(data.publicKey, 'hex');
 
             if (!key.verify(Buffer.from(hash2, 'hex'), Buffer.from(data.sign, 'hex'))) {
-                console.log('signature is not valid');
+                app.debug('network', 'log', 'state ' + data.hash + ' is not added, invalid sign');
                 return false;
             }
 
             if (data.hash != hash2) {
-                console.log('msg hash is not valid');
+                app.debug('network', 'log', 'message ' + data.hash + ' is not added, invalid hash', hash2);
                 return false;
             }
 
 
             //check proof
             if (!app.crypto.cr.pow.checkProof(payload, data.time, data.nonce)) {
-                console.log('proof is not valid');
+                app.debug('network', 'log', 'state ' + data.hash + ' is not added, proof out of bounds');
                 return false;
             }
 
             //check time
             let time = Date.now() / 1000;
             if (Math.abs(data.time - time) > 12 * 60 * 60) {
-                console.log('time is not valid');
+                app.debug('network', 'log', 'message ' + data.hash + ' is not added, time expiried');
                 return false;
             }
 
@@ -86,26 +86,26 @@ module.exports = function (app) {
             const key = HDKey.fromExtendedKey(data.xpub)
 
             if (!key.verify(Buffer.from(data.hash, 'hex'), Buffer.from(data.sign, 'hex'))) {
-                console.log('signature is not valid');
+                app.debug('network', 'log', 'state ' + data.hash + ' is not added, invalid sign');
                 return false;
             }
 
             const hash2 = app.crypto.cr.pow.getHash(payload, data.time, data.nonce);
             if (data.hash != hash2) {
-                console.log('msg hash is not valid');
+                app.debug('network', 'log', 'message ' + data.hash + ' is not added, invalid hash', hash2);
                 return false;
             }
 
             //check proof
             if (!app.crypto.cr.pow.checkProof(payload, data.time, data.nonce)) {
-                console.log('proof is not valid');
+                app.debug('network', 'log', 'state ' + data.hash + ' is not added, proof out of bounds');
                 return false;
             }
 
             //check time
             let time = Date.now() / 1000;
             if (Math.abs(data.time - time) > 12 * 60 * 60) {
-                console.log('time is not valid');
+                app.debug('network', 'log', 'message ' + data.hash + ' is not added, time expiried');
                 return false;
             }
 
@@ -129,13 +129,13 @@ module.exports = function (app) {
             //check hash
             const hash2 = app.crypto.cr.pow.getHash(msg.message, msg.time, msg.nonce);
             if (hash != hash2) {
-                this.app.debug('network', 'log', 'message ' + msg.hash + ' is not added, invalid hash', hash2);
+                app.debug('network', 'log', 'message ' + msg.hash + ' is not added, invalid hash', hash2);
                 return false;
             }
 
             //check proof
             if (!app.crypto.cr.pow.checkProof(msg.message, msg.time, msg.nonce)) {
-                this.app.debug('network', 'log', 'message ' + msg.hash + ' is not added, proof out of bounds');
+                app.debug('network', 'log', 'message ' + msg.hash + ' is not added, proof out of bounds');
                 return false;
             }
 
@@ -143,7 +143,7 @@ module.exports = function (app) {
             let time = Date.now() / 1000;
             if (Math.abs(msg.time - time) > 24 * 60 * 60) {
                 //console.log('time is not valid');
-                this.app.debug('network', 'log', 'message ' + msg.hash + ' is not added, time expiried');
+                app.debug('network', 'log', 'message ' + msg.hash + ' is not added, time expiried');
                 return false;
             }
 
