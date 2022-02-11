@@ -232,6 +232,13 @@ class App extends EventEmitter {
                     },
                     defaults: media
                 }).then((row, created) => {
+                    if (!created) {
+                        if (!row.local && media.local) {
+                            row.local = 1;
+                            return row.save()
+                        }
+                    }
+
                     if (created)
                         stats.media++;
                     return Promise.resolve(row);
@@ -377,6 +384,12 @@ class App extends EventEmitter {
     }
     getAllDialogs(limit, offset) {
         return this.storage.dialogs.list(limit, offset)
+    }
+    getMyMedia() {
+        return this.storage.media.findAll({ where: { local: 1, type: ['MEDIA_PUBLIC', 'MEDIA_PRIVATE'] } })
+    }
+    getMyNickname() {
+        return this.storage.media.findAll({ where: { local: 1, type: 'NICKNAME' } })
     }
     createNickname(name) {
         return this.createMedia(name, 'NICKNAME');

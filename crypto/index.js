@@ -199,7 +199,7 @@ class Crypto {
 
         this.cr.on('saveMediaInfo', (data, callback) => {
 
-            this.app.storage.medias.add(data.type, data.name, data.xpub, data.publicKey)
+            this.app.storage.medias.add(data.type, data.name, data.xpub, data.publicKey, true)
                 .then(() => {
                     callback(data)
                 })

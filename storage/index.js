@@ -89,6 +89,7 @@ function initdb(app) { //'your-encryption-key'
                 publicKey: DataTypes.STRING,
                 name: DataTypes.STRING,
                 type: DataTypes.STRING,
+                local: DataTypes.INTEGER
             }, { sequelize, modelName: 'media' });
 
             Follower.init({
@@ -1004,7 +1005,7 @@ class mediaManager {
             offset: offset,
         });
     }
-    add(type, name, xpub, publicKey) {
+    add(type, name, xpub, publicKey, local) {
         if (!type)
             throw new Error('type, nick and xpub must be set');
 
@@ -1022,7 +1023,8 @@ class mediaManager {
                     type,
                     name,
                     xpub,
-                    publicKey
+                    publicKey,
+                    local: local ? 1 : 0
                 });
             })
             .then((media) => {
