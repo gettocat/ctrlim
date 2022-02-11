@@ -92,21 +92,187 @@ class App extends EventEmitter {
             fs.mkdirSync(path);
         }
     }
-    //TODO:
-    exportDialogs() {
-        //get all keys
-        //get all dialogs
-        //get all own media
-        //save to file
-        //encrypt with password.
+    export(file) {
+        const algorithm = 'aes-256-ctr';
+        const iv = cr.randomBytes(16);
+        const secret = cr.createHash('sha256').update(cr.createHash('sha256').update(this.config.db.secret).digest()).digest();
+        let stats = {
+            keys: 0,
+            media: 0,
+            dialogs: 0,
+            followers: 0
+        }
+
+        function encrypt(text) {
+            let cipher = cr.createCipheriv(algorithm, secret, iv);
+            let encrypted = cipher.update(text);
+            encrypted = Buffer.concat([encrypted, cipher.final()]);
+            return Buffer.concat([iv, encrypted]);
+        }
+
+        let keys = [], dialogs = [], medias = [], followers = [];
+        return this.storage.keys.mapAll((key) => {
+            keys.push(key.toJSON());
+            stats.keys++;
+            return false;
+        })
+            .then(() => {
+                return this.storage.dialogs.mapAll((dialog) => {
+                    dialogs.push(dialog.toJSON());
+                    stats.dialogs++;
+                    return false;
+                });
+            })
+            .then(() => {
+                return this.storage.medias.mapAll((media) => {
+                    medias.push(media.toJSON());
+                    stats.media++;
+                    return false;
+                });
+            })
+            .then(() => {
+                return this.storage.followers.mapAll((follower) => {
+                    followers.push(follower.toJSON());
+                    stats.followers++;
+                    return false;
+                });
+            })
+            .then(() => {
+
+                return new Promise((resolve, reject) => {
+
+                    let encryptedBuffer = encrypt(Buffer.from(JSON.stringify({
+                        keys,
+                        dialogs,
+                        medias,
+                        followers
+
+                    })));
+
+                    fs.writeFile(file, encryptedBuffer, (err, res) => {
+                        if (err)
+                            return reject(err);
+                        resolve(stats)
+                    });
+
+                })
+
+
+            })
     }
     //TODO:
-    importDialogs() {
+    import(file, password) {
         //decrypt file with password,
         //load keys
         //load dialogs
         //load medias
+        let content = fs.readFileSync(file);
+        let json = JSON.parse(decrypt(content));
 
+        let promise = Promise.resolve();
+
+        let stats = {
+            keys: 0,
+            media: 0,
+            dialogs: 0,
+            followers: 0
+        }
+
+        for (let key of json.keys) {
+            if (key.id)
+                delete key.id;
+
+            promise = promise.then(() => {
+
+                return this.storage.models.KeyPair.findOrCreate({
+                    where: {
+                        publicKey: key.publicKey,
+                        keyType: key.keyType
+                    },
+                    defaults: key
+                }).then((row, created) => {
+                    if (created)
+                        stats.keys++;
+                    return Promise.resolve(row);
+                })
+            })
+
+
+        }
+
+        for (let dialog of json.dialogs) {
+            if (dialog.id)
+                delete dialog.id;
+
+            promise = promise.then(() => {
+                return this.storage.models.Dialog.findOrCreate({
+                    where: {
+                        localkey: dialog.localkey,
+                        externalkey: dialog.externalkey
+                    },
+                    defaults: dialog
+                }).then((row, created) => {
+                    if (created)
+                        stats.dialogs++;
+                    return Promise.resolve(row);
+                })
+            })
+
+        }
+
+        for (let media of json.medias) {
+            if (media.id)
+                delete media.id;
+
+            promise = promise.then(() => {
+                return this.storage.models.Media.findOrCreate({
+                    where: {
+                        publicKey: media.publicKey,
+                        type: media.type
+                    },
+                    defaults: media
+                }).then((row, created) => {
+                    if (created)
+                        stats.media++;
+                    return Promise.resolve(row);
+                })
+            })
+        }
+
+        for (let follower of json.followers) {
+            if (follower.id)
+                delete follower.id;
+
+            promise = promise.then(() => {
+                return this.storage.models.Follower.findOrCreate({
+                    where: {
+                        localkey: follower.localkey,
+                        followerkey: follower.followerkey
+                    },
+                    defaults: follower
+                }).then((row, created) => {
+                    if (created)
+                        stats.followers++;
+                    return Promise.resolve(row);
+                })
+            })
+        }
+
+        function decrypt(buff) {
+            const secret = cr.createHash('sha256').update(cr.createHash('sha256').update(password).digest()).digest();
+            const algorithm = 'aes-256-ctr';
+            const iv = buff.slice(0, 16);
+            const encryptedData = buff.slice(16);
+            let decipher = cr.createDecipheriv(algorithm, secret, iv);
+            let decrypted = decipher.update(encryptedData);
+            decrypted = Buffer.concat([decrypted, decipher.final()]);
+            return decrypted.toString();
+        }
+
+        return promise
+            .then(() => {
+                return Promise.resolve(stats)
+            });
     }
     loadModule(m) {
         let params = [],
@@ -212,6 +378,9 @@ class App extends EventEmitter {
     getAllDialogs(limit, offset) {
         return this.storage.dialogs.list(limit, offset)
     }
+    createNickname(name) {
+        return this.createMedia(name, 'NICKNAME');
+    }
     //media
     createMedia(name, type) {
         //type can be:
@@ -229,6 +398,9 @@ class App extends EventEmitter {
     }
     editMedia(xpub, options) {
         //TODO
+    }
+    getNickname(name) {
+        return this.getMedia(name)
     }
     getMedia(media_name) {
         let media_data = this.network.getState(media_name);

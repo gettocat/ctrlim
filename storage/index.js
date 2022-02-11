@@ -1164,6 +1164,18 @@ class followersManager {
                 return Promise.resolve(false);
             })
     }
+    mapAll(fn) {
+        let items = [];
+        return this.db.models.Follower.findAll({})
+            .then(list => {
+                for (let i of list) {
+                    if (fn(i))
+                        items.push(i);
+                }
+
+                return Promise.resolve(items);
+            })
+    }
     rollback() {
         let promise = Promise.resolve();
         for (let i in this.history) {
