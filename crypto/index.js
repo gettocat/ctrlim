@@ -45,8 +45,8 @@ class Crypto {
         });
 
         /*decrypt events*/
-        this.cr.on('addDialog', (localkey, externalkey, callback) => {
-            this.app.storage.dialogs.add(localkey, externalkey)
+        this.cr.on('addDialog', (localkey, externalkey, callback, name) => {
+            this.app.storage.dialogs.add(localkey, externalkey, name)
                 .then(() => {
                     callback();
                 })
@@ -404,8 +404,8 @@ class Crypto {
     createPublicKeyPair() {
         return this.cr.createPublicKeyPair()
     }
-    encrypt(context, buffer, version) {
-        return this.cr.encrypt(context, buffer, version);
+    encrypt(context, buffer, version, dialogName) {
+        return this.cr.encrypt(context, buffer, version, dialogName);
     }
     decrypt(buffer) {
         return this.cr.decrypt(buffer);

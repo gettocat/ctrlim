@@ -367,6 +367,33 @@ class App extends EventEmitter {
 
         return this.storage.messages.add(dialog_id, options.message_id, data, options.self, type, JSON.stringify(cnt), options.nonce, options.time, options.hash)
     }
+    sendToNick(name, buffer) {
+
+        //look nick in state
+        //if not have - error throw
+        let state = this.getNickname(name);
+        if (!state || !state.xpub || state.type != 'NICKNAME')
+            throw new Error('Nick @' + name + ' is not exist or it is a media');
+        //look dialog with $name = name
+        return this.storage.models.Dialog.findOne({
+            where: {
+                name: "@" + name
+            }
+        })
+            .then((dialog) => {
+
+                //if have - sendById 
+                if (dialog)
+                    return this.sendById(dialog.id, buffer);
+
+                //if not: send encrypted with hellopublickey
+                return this.crypto.encrypt({ externalkeyWithDerive: state.xpub }, buffer, this.Crypto.HELLOPUBLICKEY, "@" + name)
+                    .then((buffer) => {
+                        return this.crypto.payloadBroadcast(buffer);
+                    })
+            })
+
+    }
     getDialogById(id) {
         return this.storage.dialogs.getById(id);
     }
