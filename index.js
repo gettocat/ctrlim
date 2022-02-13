@@ -99,10 +99,10 @@ class App extends EventEmitter {
         for (let tx of list) {
             promise = promise.then(() => {
                 return new Promise(resolve => {
-                    tx.callback = function () {
+                    let callback = function () {
                         resolve();
                     };
-                    this.crypto.incomingmessagehandle(tx);
+                    this.crypto.incomingmessagehandle({ message: tx, hash: tx.hash, callback });
                 })
             })
         }
