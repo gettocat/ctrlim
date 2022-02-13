@@ -92,6 +92,59 @@ class App extends EventEmitter {
             fs.mkdirSync(path);
         }
     }
+    sync() {
+
+        let promise = Promise.resolve();
+        let list = this.network.getMempool();
+        for (let tx of list) {
+            promise = promise.then(() => {
+                return new Promise(resolve => {
+                    tx.callback = function () {
+                        resolve();
+                    };
+                    this.crypto.incomingmessagehandle(tx);
+                })
+            })
+        }
+
+        return promise
+            .then(() => {
+                return this.getMyMedia()
+            })
+            .then((list) => {
+
+                let prms = [];
+
+                for (let media of list) {
+                    let data = this.getMedia(media.name);
+                    if (!data || !data.xpub) {
+                        prms.push(media.destroy());
+                    }
+                }
+
+                return Promise.all(prms);
+
+            })
+            .then(() => {
+                return this.getMyNickname()
+            })
+            .then((list) => {
+
+                let prms = [];
+
+                for (let nick of list) {
+                    let data = this.getMedia(nick.name);
+                    if (!data || !data.xpub) {
+                        prms.push(nick.destroy());
+                    }
+                }
+
+                return Promise.all(prms);
+
+            })
+
+    }
+
     export(file) {
         const algorithm = 'aes-256-ctr';
         const iv = cr.randomBytes(16);

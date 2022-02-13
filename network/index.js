@@ -162,7 +162,7 @@ module.exports = function (app) {
         }
         runGC() {
             this.gc = setTimeout(() => {
-                let list = getMempool();
+                let list = this.getMempool();
                 const range = 24 * 60 * 60;
                 let cnt = 0;
                 for (let tx of list) {
