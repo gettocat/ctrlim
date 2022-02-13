@@ -92,6 +92,16 @@ class App extends EventEmitter {
             fs.mkdirSync(path);
         }
     }
+    renameDialog(id, newname) {
+        return this.getDialogById(id)
+            .then((dialog) => {
+                if (!dialog)
+                    throw new Error('dialog not found');
+
+                dialog.name = newname;
+                return dialog.save();
+            })
+    }
     sync() {
 
         let promise = Promise.resolve();
