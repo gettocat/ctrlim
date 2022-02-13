@@ -238,8 +238,8 @@ module.exports = function (app) {
 
             this.instance = true;
 
-            this.document.on('clientError', this.error);
-            this.document.on("error", this.error);
+            this.document.on('clientError', (e) => { this.error(e) });
+            this.document.on("error", (e) => { this.error(e) });
 
             /*this.instance = net.createServer((stream) => {
                 stream.pipe(this.document.createStream()).pipe(stream);
@@ -274,7 +274,7 @@ module.exports = function (app) {
                 if (info.peer)
                     this.peers[info.peer.host + ":" + info.peer.port] = 1;
 
-                socket.on("error", this.error);
+                socket.on("error", (e) => { this.error(e) });
                 socket.pipe(this.document.createStream()).pipe(socket);
                 this.document.createStream().pipe(socket).pipe(this.document.createStream());
             });
