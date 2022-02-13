@@ -285,8 +285,9 @@ module.exports = function (app) {
             })
 
             this.swarm.on('disconnection', (socket, info) => {
-                if (this.peers[info.peer.host + ":" + info.peer.port])
-                    delete this.peers[info.peer.host + ":" + info.peer.port]
+                if (info.peer)
+                    if (this.peers[info.peer.host + ":" + info.peer.port])
+                        delete this.peers[info.peer.host + ":" + info.peer.port]
             })
 
             app.on('beforeDestroy', () => {
