@@ -10,7 +10,7 @@
   "homepage": "https://github.com/gettocat/ctrlim",
   "keywords": [],
   "dependencies": {
-    "filtergraphy": "^0.0.11",
+    "filtergraphy": "^0.0.12",
     "@journeyapps/sqlcipher": "^5.1.0",
     "bip39": "^3.0.3",
     "bitpony": "^0.0.2",
