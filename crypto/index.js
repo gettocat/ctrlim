@@ -49,8 +49,8 @@ class Crypto {
             let local = Buffer.from(localkey, 'hex').toString('hex');
             let external = Buffer.from(externalkey, 'hex').toString('hex');
             this.app.storage.dialogs.add(local, external, name)
-                .then(() => {
-                    callback();
+                .then((dialog) => {
+                    callback(dialog);
                 })
         })
 
@@ -174,8 +174,8 @@ class Crypto {
         this.cr.on('saveNewKey', (type, keystore, callback) => {
             //save key to database
             this.app.storage.models.KeyPair.create({
-                publicKey: keystore.publicKey,
-                privateKey: keystore.privateKey,
+                publicKey: Buffer.from(keystore.publicKey, 'hex').toString('hex'),
+                privateKey: Buffer.from(keystore.privateKey, 'hex').toString('hex'),
                 path: keystore.path,
                 index: keystore.index,
                 keyType: keystore.keyType || type,
