@@ -46,14 +46,18 @@ class Crypto {
 
         /*decrypt events*/
         this.cr.on('addDialog', (localkey, externalkey, callback, name) => {
-            this.app.storage.dialogs.add(localkey, externalkey, name)
+            let local = Buffer.from(localkey, 'hex').toString('hex');
+            let external = Buffer.from(externalkey, 'hex').toString('hex');
+            this.app.storage.dialogs.add(local, external, name)
                 .then(() => {
                     callback();
                 })
         })
 
         this.cr.on('removeDialog', (localkey, externalkey, callback) => {
-            this.app.storage.dialogs.remove(localkey, externalkey)
+            let local = Buffer.from(localkey, 'hex').toString('hex');
+            let external = Buffer.from(externalkey, 'hex').toString('hex');
+            this.app.storage.dialogs.remove(local, external)
                 .then(() => {
                     callback();
                 })
@@ -103,6 +107,9 @@ class Crypto {
             this.app.storage.keys.get(context.localkey)
                 .then(_ => {
                     callback(_);
+                })
+                .catch(e => {
+                    callback(null)
                 })
 
         });
