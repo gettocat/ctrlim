@@ -368,6 +368,13 @@ module.exports = function (app) {
 
             return !!followers[publicKeyFollower] && followers[publicKeyFollower] != undefined && followers[publicKeyFollower].follow;
         }
+        getFollowStates(media_name) {
+            let followers = this.document.get('followers').get(media_name);
+            if (!followers)
+                followers = {};
+
+            return Object.keys(followers);
+        }
     }
 
     Network.SYSTEMNAMES = [];

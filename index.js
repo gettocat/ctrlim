@@ -522,6 +522,30 @@ class App extends EventEmitter {
     sendMediaMessage(media_name, msg) {
         return this.crypto.mediaBroadcast(media_name, msg);
     }
+    getFollowers(mediaName) {
+        let data = this.getMedia(mediaName);
+
+        if (data.type == 'MEDIA_PUBLIC') {
+            return this.network.getFollowStates(mediaName);
+        }
+
+        if (data.type == 'MEDIA_PRIVATE') {
+            return this.storage.models.Follower
+                .findAll({
+                    where: {
+                        localkey: data.publicKey
+                    }
+                })
+                .then((list) => {
+                    let keys = [];
+                    for (let f of list) {
+                        keys.push(f.followerkey);
+                    }
+
+                    return Promise.resolve(keys)
+                })
+        }
+    }
     setPersistent() {
         //do something when app is closing
         process.on('exit', this.exitHandler.bind(this, { cleanup: true }));
